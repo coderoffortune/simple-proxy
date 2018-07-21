@@ -9,6 +9,7 @@ server.pre(cors.preflight);
 server.use(cors.actual);
 server.use(restify.plugins.queryParser());
 
-server.get('/', proxy.get);
+server.get('/',  proxy.get);
+server.post('/', proxy.post);
 
 module.exports = server;
