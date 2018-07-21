@@ -1,15 +1,15 @@
 let restify = require('restify');
-let cors = require('./middlewares/cors');
-let server = restify.createServer();
+let cors    = require('./middlewares/cors');
+let Proxy   = require('./proxy');
 
-let Proxy = require('./proxy');
-const proxy = new Proxy();
-
+const server = restify.createServer();
 server.pre(cors.preflight);
 server.use(cors.actual);
 server.use(restify.plugins.queryParser());
 
-server.get('/',  proxy.get);
-server.post('/', proxy.post);
+const proxy = new Proxy();
+
+server.get('/',  proxy.checkUrlParam, (req, res, next) => proxy.get(req, res, next));
+server.post('/', proxy.checkUrlParam, (req, res, next) => proxy.post(req, res, next));
 
 module.exports = server;

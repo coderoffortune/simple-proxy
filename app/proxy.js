@@ -6,19 +6,22 @@ class Proxy {
         this.proxyHeaderKey = 'Proxy-Header';
     }
 
-    get(req, res, next) {
-        const url = req.query.url;
-        let forwardHeaders = JSON.parse(req.header('Forward-Headers', "{}"));
-        forwardHeaders = forwardHeaders === {} ? {'Content-Type': req.contentType()} : forwardHeaders;
-
-        if(!url) {
+    checkUrlParam(req, res, next) {
+        if(!req.query.url) {
             res.send(500, {message: 'Missing url'})
 
             return;
         }
 
+        next();
+    }
+
+    get(req, res, next) {
+        const url = req.query.url;
+        const headers = this.prepareHeaders(req);
+
         axios
-            .get(url, {headers: forwardHeaders})
+            .get(url, {headers: headers})
             .then(response => 
                 res.send(response.status, response.data)
             )
@@ -26,21 +29,19 @@ class Proxy {
 
     post(req, res, next) {
         const url = req.query.url;
-        const forwardHeaders = req.header('Forward-Headers', {
-            'Content-Type': req.contentType
-        });
+        const headers = this.prepareHeaders(req);
         
-        if(!url) {
-            res.send(500, {message: 'Missing url'})
-
-            return;
-        }
-
         axios
-            .post(url, req.body, {headers: forwardHeaders})
+            .post(url, req.body, {headers: headers})
             .then(response => 
-                req.send(response.status, response.data)
+                res.send(response.status, response.data)
             )
+    }
+
+    prepareHeaders(req) {
+        let forwardHeaders = JSON.parse(req.header(this.forwardHeadersKey, "{}"));
+
+        return forwardHeaders === {} ? { 'Content-Type': req.contentType() } : forwardHeaders;
     }
 }
 
