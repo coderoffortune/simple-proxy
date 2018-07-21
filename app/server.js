@@ -15,5 +15,6 @@ const proxy = new Proxy()
 
 server.get('/',  proxy.get)
 server.post('/', proxy.post)
+server.put('/',  proxy.put)
 
 module.exports = server
