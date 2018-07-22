@@ -10,6 +10,10 @@ class Proxy {
             headers: req.forwardHeaders
         }
 
+        res.removeHeader('server')
+        res.removeHeader('Date')
+        res.removeHeader('Connection')
+        
         axios
             .get(req.forwardUrl, options)
             .then(response =>  {
