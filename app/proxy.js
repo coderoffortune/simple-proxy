@@ -2,7 +2,6 @@ let axios = require('axios');
 
 class Proxy {
     constructor() {
-        this.forwardHeadersKey = 'Forward-Headers';
     }
 
     get(req, res, next) {
@@ -13,20 +12,16 @@ class Proxy {
         axios
             .get(req.forwardUrl, options)
             .then(response =>  {
-                Object.entries(response.headers)
-                    .filter(([key, value]) => key !== 'transfer-encoding' )
-                    .map(([key, value]) => res.header(key, value) )
+                res.proxiedResponse = response
 
-                res.send(response.status, response.data)
-
-                return next()
+                next()
             })
             .catch(error => {
-                Object.entries(error.response.headers)
-                    .filter(([key, value]) => key !== 'transfer-encoding' )
-                    .map(([key, value]) => res.header(key, value) )
-
-                res.send(error.response.status, error.response.statusText)
+                res.proxiedResponse = {
+                    headers: error.response.headers,
+                    status: error.response.status,
+                    data: error.response.statusText
+                }
 
                 return next()
             })
@@ -40,20 +35,16 @@ class Proxy {
         axios
             .post(req.forwardUrl, req.body, options)
             .then(response => {
-                Object.entries(response.headers)
-                    .filter(([key, value]) => key !== 'transfer-encoding' )
-                    .map(([key, value]) => res.header(key, value) )
-
-                res.send(response.status, response.data)
+                res.proxiedResponse = response
 
                 return next()
             })
             .catch(error => {
-                Object.entries(error.response.headers)
-                    .filter(([key, value]) => key !== 'transfer-encoding' )
-                    .map(([key, value]) => res.header(key, value) )
-
-                res.send(error.response.status, error.response.statusText)
+                res.proxiedResponse = {
+                    headers: error.response.headers,
+                    status: error.response.status,
+                    data: error.response.statusText
+                }
 
                 return next()
             })
@@ -67,24 +58,39 @@ class Proxy {
         axios
             .put(req.forwardUrl, req.body, options)
             .then(response =>  {
-                Object.entries(response.headers)
-                    .filter(([key, value]) => key !== 'transfer-encoding' )
-                    .map(([key, value]) => res.header(key, value) )
-
-                res.send(response.status, response.data)
+                res.proxiedResponse = response
 
                 return next()
             })
             .catch(error => {
-                Object.entries(error.response.headers)
-                    .filter(([key, value]) => key !== 'transfer-encoding' )
-                    .map(([key, value]) => res.header(key, value) )
-
-                res.send(error.response.status, error.response.statusText)
+                res.proxiedResponse = {
+                    headers: error.response.headers,
+                    status: error.response.status,
+                    data: error.response.statusText
+                }
 
                 return next()
             })
     }
+
+    setHeaders(req, res, next) {
+        Object.entries(res.proxiedResponse.headers)
+            .filter( ([key, value]) => 
+                key !== 'transfer-encoding' 
+            )
+            .map( ([key, value]) => {
+                res.setHeader(key, value) 
+            })
+
+        return next()
+    }
+
+    sendResponse(req, res, next) {
+        res.send(res.proxiedResponse.status, res.proxiedResponse.data)
+
+        return next()
+    }
+
 }
 
 module.exports = Proxy;
