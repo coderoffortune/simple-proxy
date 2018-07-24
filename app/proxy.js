@@ -1,79 +1,75 @@
 let axios = require('axios');
 
 class Proxy {
-    constructor() {
-    }
-
-    get(req, res, next) {
-        const options = {
-            headers: req.forwardHeaders
-        }
-        
+    static get(req, res, next) {
         axios
-            .get(req.forwardUrl, options)
+            .get(req.forwardUrl, {headers: req.forwardHeaders})
             .then(response =>  {
                 res.proxiedResponse = response
 
-                next()
+                return next()
             })
             .catch(error => {
-                res.proxiedResponse = {
-                    headers: error.response.headers,
-                    status: error.response.status,
-                    data: error.response.statusText
-                }
+                res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
 
                 return next()
             })
     }
 
-    post(req, res, next) {
-        const options = {
-            headers: req.forwardHeaders
-        }
-
+    static post(req, res, next) {
         axios
-            .post(req.forwardUrl, req.body, options)
+            .post(req.forwardUrl, req.body, {headers: req.forwardHeaders})
             .then(response => {
                 res.proxiedResponse = response
 
                 return next()
             })
             .catch(error => {
-                res.proxiedResponse = {
-                    headers: error.response.headers,
-                    status: error.response.status,
-                    data: error.response.statusText
-                }
+                res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
 
                 return next()
             })
     }
 
-    put(req, res, next) {
-        const options = {
-            headers: req.forwardHeaders
-        }
-
+    static put(req, res, next) {
         axios
-            .put(req.forwardUrl, req.body, options)
+            .put(req.forwardUrl, req.body, {headers: req.forwardHeaders})
             .then(response =>  {
                 res.proxiedResponse = response
 
                 return next()
             })
             .catch(error => {
-                res.proxiedResponse = {
-                    headers: error.response.headers,
-                    status: error.response.status,
-                    data: error.response.statusText
-                }
+                res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
 
                 return next()
             })
     }
 
-    setHeaders(req, res, next) {
+    static delete(req, res, next) {
+        axios
+            .delete(req.forwardUrl, req.body, {headers: req.forwardHeaders})
+            .then(response =>  {
+                res.proxiedResponse = response
+
+                return next()
+            })
+            .catch(error => {
+                res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
+
+                return next()
+            })
+    }
+
+    static prepareErrorResponse(response) {
+        return {
+            headers: response.headers,
+            status: response.status,
+            data: response.statusText
+        }
+    }
+
+    static setHeaders(req, res, next) {
         Object.entries(res.proxiedResponse.headers)
             .filter( ([key, value]) => 
                 key !== 'transfer-encoding' 
@@ -85,12 +81,11 @@ class Proxy {
         return next()
     }
 
-    sendResponse(req, res, next) {
+    static sendResponse(req, res, next) {
         res.send(res.proxiedResponse.status, res.proxiedResponse.data)
 
         return next()
     }
-
 }
 
 module.exports = Proxy;

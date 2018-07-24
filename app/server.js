@@ -17,11 +17,9 @@ server.use(extract.forwardHeaders)
 
 server.use(cleanup.headers)
 
-const proxy = new Proxy()
-
-server.get('/',  proxy.get,  proxy.setHeaders, proxy.sendResponse)
-server.post('/', proxy.post, proxy.setHeaders, proxy.sendResponse)
-server.put('/',  proxy.put,  proxy.setHeaders, proxy.sendResponse)
-
+server.get('/',  Proxy.get,    Proxy.setHeaders, Proxy.sendResponse)
+server.post('/', Proxy.post,   Proxy.setHeaders, Proxy.sendResponse)
+server.put('/',  Proxy.put,    Proxy.setHeaders, Proxy.sendResponse)
+server.del('/',  Proxy.delete, Proxy.setHeaders, Proxy.sendResponse)
 
 module.exports = server
