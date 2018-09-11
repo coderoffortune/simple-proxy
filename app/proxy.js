@@ -1,7 +1,12 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
+const debug = require('debug')('simple-proxy')
 let axios = require('axios');
 
 class Proxy {
     static get(req, res, next) {
+        debug('GET: %s\n\t Forward headers', req.forwardUrl, req.forwardHeaders)
+
         axios
             .get(req.forwardUrl, {headers: req.forwardHeaders})
             .then(response =>  {
@@ -10,6 +15,8 @@ class Proxy {
                 return next()
             })
             .catch(error => {
+                debug('Error:', error.code)
+
                 res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
 
                 return next()
@@ -17,6 +24,8 @@ class Proxy {
     }
 
     static post(req, res, next) {
+        debug('POST: %s\n\t Forward headers', req.forwardUrl, req.forwardHeaders)
+
         axios
             .post(req.forwardUrl, req.body, {headers: req.forwardHeaders})
             .then(response => {
@@ -25,6 +34,8 @@ class Proxy {
                 return next()
             })
             .catch(error => {
+                debug('Error:', error.code)
+
                 res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
 
                 return next()
@@ -32,6 +43,8 @@ class Proxy {
     }
 
     static put(req, res, next) {
+        debug('PUT: %s\n\t Forward headers', req.forwardUrl, req.forwardHeaders)
+
         axios
             .put(req.forwardUrl, req.body, {headers: req.forwardHeaders})
             .then(response =>  {
@@ -40,6 +53,8 @@ class Proxy {
                 return next()
             })
             .catch(error => {
+                debug('Error:', error.code)
+
                 res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
 
                 return next()
@@ -47,6 +62,8 @@ class Proxy {
     }
 
     static delete(req, res, next) {
+        debug('DELETE: %s\n\t Forward headers', req.forwardUrl, req.forwardHeaders)
+
         axios
             .delete(req.forwardUrl, req.body, {headers: req.forwardHeaders})
             .then(response =>  {
@@ -55,6 +72,8 @@ class Proxy {
                 return next()
             })
             .catch(error => {
+                debug('Error:', error.code)
+
                 res.proxiedResponse = Proxy.prepareErrorResponse(error.response)
 
                 return next()
@@ -62,10 +81,18 @@ class Proxy {
     }
 
     static prepareErrorResponse(response) {
-        return {
-            headers: response.headers,
-            status: response.status,
-            data: response.statusText
+        if(response) {
+            return {
+                headers: response.headers,
+                status: response.status,
+                data: response.statusText
+            }    
+        } else {
+            return {
+                headers: null,
+                status: null,
+                data: 'An unknown error happened'
+            }
         }
     }
 
