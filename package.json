@@ -11,11 +11,11 @@
     "author": "Alessandro Garzaro",
     "license": "MIT",
     "dependencies": {
-        "axios": "0.19.0",
-        "restify": "8.4.0",
+        "axios": "0.19.2",
+        "restify": "8.5.1",
         "restify-cors-middleware": "1.1.1"
     },
     "devDependencies": {
-        "nodemon": "1.19.2"
+        "nodemon": "2.0.4"
     }
 }
